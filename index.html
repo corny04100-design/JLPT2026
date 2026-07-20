@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JLPT N1~N5 가채점 계산기</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; }
+        /* 스크롤바 디자인 */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen pb-12">
+
+    <!-- 상단 헤더 -->
+    <header class="bg-indigo-900 text-white shadow-lg py-6 px-4 mb-6">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-2xl md:text-3xl font-bold tracking-tight mb-2">2026 JLPT 채점 계산기____________피드백: corny04100@gmail.com</h1>
+            <p class="text-indigo-200 text-sm md:text-base">
+            </p>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4">
+        <!-- 사용 안내 배너 -->
+        <div class="bg-amber-50 border-l-4 border-amber-500 p-4 mb-6 rounded-r-lg shadow-sm">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-amber-500" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3 text-sm text-amber-800">
+                    <p class="font-bold mb-1">안내사항</p>
+                    <ul class="list-disc list-inside space-y-0.5 text-xs md:text-sm">
+                        <li>실제 JLPT는 득점등화 방식으로 채점되므로 본 계산기는 <strong>간이 채점용</strong>입니다!</li>
+                        <li>맞춘 개수를 <strong>[정답]</strong> 칸에 입력하시면 실시간으로 점수가 계산됩니다.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 급수 탭 버튼 -->
+        <div class="flex space-x-1 md:space-x-2 border-b border-slate-300 mb-6 overflow-x-auto pb-1">
+            <button onclick="switchTab('N1')" id="tab-N1" class="tab-btn flex-1 py-2.5 px-4 font-bold text-center rounded-t-lg transition-colors border-t-2 border-transparent bg-indigo-600 text-white shadow-sm">N1</button>
+            <button onclick="switchTab('N2')" id="tab-N2" class="tab-btn flex-1 py-2.5 px-4 font-bold text-center rounded-t-lg transition-colors border-t-2 border-transparent bg-slate-200 text-slate-600 hover:bg-slate-300">N2</button>
+            <button onclick="switchTab('N3')" id="tab-N3" class="tab-btn flex-1 py-2.5 px-4 font-bold text-center rounded-t-lg transition-colors border-t-2 border-transparent bg-slate-200 text-slate-600 hover:bg-slate-300">N3</button>
+            <button onclick="switchTab('N4')" id="tab-N4" class="tab-btn flex-1 py-2.5 px-4 font-bold text-center rounded-t-lg transition-colors border-t-2 border-transparent bg-slate-200 text-slate-600 hover:bg-slate-300">N4 </button>
+            <button onclick="switchTab('N5')" id="tab-N5" class="tab-btn flex-1 py-2.5 px-4 font-bold text-center rounded-t-lg transition-colors border-t-2 border-transparent bg-slate-200 text-slate-600 hover:bg-slate-300">N5 </button>
+        </div>
+
+        <!-- 본문 입력 영역 및 결과 출력 컨테이너 -->
+        <div id="content-area" class="space-y-6">
+            <!-- 자바스크립트로 동적 렌더링 됩니다 -->
+        </div>
+    </main>
+
+    <script>
+        // JLPT 급수별 데이터 정의
+        const jlptData = {
+            N1: {
+                title: "N1",
+                passScore: 100,
+                hasBlue: true,
+                blueBenchmarks: { sec0: 52.8, sec1: 51.6, sec2: 51.9 },
+                sections: [
+                    {
+                        name: "언어지식 (문자·어휘·문법)",
+                        maxScore: 60,
+                        minPass: 19,
+                        problems: [
+                            { category: "문자·어휘", title: "문제 1 한자읽기", range: "01-06", qCount: 6, weight: 1 },
+                            { category: "", title: "문제 2 문맥규정", range: "07-13", qCount: 7, weight: 1 },
+                            { category: "", title: "문제 3 유의 표현", range: "14-19", qCount: 6, weight: 1 },
+                            { category: "", title: "문제 4 용법", range: "20-25", qCount: 6, weight: 2 },
+                            { category: "문법", title: "문제 5 문법형식 판단", range: "26-35", qCount: 10, weight: 1 },
+                            { category: "", title: "문제 6 문장만들기", range: "36-40", qCount: 5, weight: 1 },
+                            { category: "", title: "문제 7 글의 문법", range: "41-44", qCount: 4, weight: 2 }
+                        ]
+                    },
+                    {
+                        name: "독해",
+                        maxScore: 60,
+                        minPass: 19,
+                        problems: [
+                            { category: "독해", title: "문제 8 내용이해 (단문)", range: "45-48", qCount: 4, weight: 2 },
+                            { category: "", title: "문제 9 내용이해 (중문)", range: "49-56", qCount: 8, weight: 2 },
+                            { category: "", title: "문제10 내용이해 (장문)", range: "57-59", qCount: 3, weight: 2 },
+                            { category: "", title: "문제11 통합이해", range: "60-61", qCount: 2, weight: 2 },
+                            { category: "", title: "문제12 주장이해 (장문)", range: "62-64", qCount: 3, weight: 3 },
+                            { category: "", title: "문제13 정보검색", range: "65-66", qCount: 2, weight: 3 }
+                        ]
+                    },
+                    {
+                        name: "청해",
+                        maxScore: 60,
+                        minPass: 19,
+                        problems: [
+                            { category: "청해", title: "문제 1 과제이해", range: "-", qCount: 5, weight: 2 },
+                            { category: "", title: "문제 2 포인트이해", range: "-", qCount: 6, weight: 1 },
+                            { category: "", title: "문제 3 개요이해", range: "-", qCount: 5, weight: 2 },
+                            { category: "", title: "문제 4 즉시응답", range: "-", qCount: 11, weight: 1 },
+                            { category: "", title: "문제 5 통합이해", range: "-", qCount: 3, weight: 4 }
+                        ]
+                    }
+                ]
+            },
+            N2: {
+                title: "N2",
+                passScore: 90,
+                hasBlue: true,
+                blueBenchmarks: { sec0: 52.8, sec1: 52.2, sec2: 52.8 },
+                sections: [
+                    {
+                        name: "언어지식 (문자·어휘·문법)",
+                        maxScore: 60,
+                        minPass: 19,
+                        problems: [
+                            { category: "문자·어휘", title: "문제 1 한자읽기", range: "01-05", qCount: 5, weight: 1 },
+                            { category: "", title: "문제 2 표기", range: "06-10", qCount: 5, weight: 1 },
+                            { category: "", title: "문제 3 단어형성", range: "11-13", qCount: 3, weight: 1 },
+                            { category: "", title: "문제 4 문맥규정", range: "14-20", qCount: 7, weight: 1 },
+                            { category: "", title: "문제 5 유의 표현", range: "21-25", qCount: 5, weight: 1 },
+                            { category: "", title: "문제 6 용법", range: "26-30", qCount: 5, weight: 2 },
+                            { category: "문법", title: "문제 7 문법형식 판단", range: "31-42", qCount: 12, weight: 1 },
+                            { category: "", title: "문제 8 문장만들기", range: "43-47", qCount: 5, weight: 1 },
+                            { category: "", title: "문제 9 글의 문법", range: "48-51", qCount: 4, weight: 1 }
+                        ]
+                    },
+                    {
+                        name: "독해",
+                        maxScore: 60,
+                        minPass: 19,
+                        problems: [
+                            { category: "독해", title: "문제10 내용이해 (단문)", range: "52-56", qCount: 5, weight: 2 },
+                            { category: "", title: "문제11 내용이해 (중문)", range: "57-64", qCount: 8, weight: 3 },
+                            { category: "", title: "문제12 통합이해", range: "65-66", qCount: 2, weight: 3 },
+                            { category: "", title: "문제13 주장이해 (장문)", range: "67-69", qCount: 3, weight: 3 },
+                            { category: "", title: "문제14 정보검색", range: "70-71", qCount: 2, weight: 3 }
+                        ]
+                    },
+                    {
+                        name: "청해",
+                        maxScore: 60,
+                        minPass: 19,
+                        problems: [
+                            { category: "청해", title: "문제 1 과제이해", range: "-", qCount: 5, weight: 2 },
+                            { category: "", title: "문제 2 포인트이해", range: "-", qCount: 6, weight: 2 },
+                            { category: "", title: "문제 3 개요이해", range: "-", qCount: 5, weight: 2 },
+                            { category: "", title: "문제 4 즉시응답", range: "-", qCount: 11, weight: 1 },
+                            { category: "", title: "문제 5 통합이해", range: "-", qCount: 3, weight: 4 }
+                        ]
+                    }
+                ]
+            },
+            N3: {
+                title: "N3",
+                passScore: 95,
+                hasBlue: true,
+                blueBenchmarks: { sec0: 52, sec1: 52, sec2: 52 },
+                sections: [
+                    {
+                        name: "언어지식 (문자·어휘·문법)",
+                        maxScore: 60,
+                        minPass: 19,
+                        problems: [
+                            { category: "문자·어휘", title: "문제 1 한자읽기", range: "01-08", qCount: 8, weight: 1 },
+                            { category: "", title: "문제 2 표기", range: "09-14", qCount: 6, weight: 1 },
+                            { category: "", title: "문제 3 문맥규정", range: "15-25", qCount: 11, weight: 1 },
+                            { category: "", title: "문제 4 유의 표현", range: "26-30", qCount: 5, weight: 1 },
+                            { category: "", title: "문제 5 용법", range: "31-35", qCount: 5, weight: 2 },
+                            { category: "문법", title: "문제 1 문법형식 판단", range: "01-13", qCount: 13, weight: 1 },
+                            { category: "", title: "문제 2 문장만들기", range: "14-18", qCount: 5, weight: 1 },
+                            { category: "", title: "문제 3 글의 문법", range: "19-22", qCount: 4, weight: 2 }
+                        ]
+                    },
+                    {
+                        name: "독해",
+                        maxScore: 60,
+                        minPass: 19,
+                        problems: [
+                            { category: "독해", title: "문제 4 내용이해 (단문)", range: "23-26", qCount: 4, weight: 2 },
+                            { category: "", title: "문제 5 내용이해 (중문)", range: "27-32", qCount: 6, weight: 3 },
+                            { category: "", title: "문제 6 내용이해 (장문)", range: "33-36", qCount: 4, weight: 3 },
+                            { category: "", title: "문제 7 정보검색", range: "37-38", qCount: 2, weight: 3 }
+                        ]
+                    },
+                    {
+                        name: "청해",
+                        maxScore: 60,
+                        minPass: 19,
+                        problems: [
+                            { category: "청해", title: "문제 1 과제이해", range: "-", qCount: 6, weight: 2 },
+                            { category: "", title: "문제 2 포인트이해", range: "-", qCount: 6, weight: 2 },
+                            { category: "", title: "문제 3 개요이해", range: "-", qCount: 3, weight: 2 },
+                            { category: "", title: "문제 4 발화표현", range: "-", qCount: 4, weight: 1 },
+                            { category: "", title: "문제 5 즉시응답", range: "-", qCount: 9, weight: 1 }
+                        ]
+                    }
+                ]
+            },
+            N4: {
+                title: "N4",
+                passScore: 90,
+                hasBlue: false,
+                sections: [
+                    {
+                        name: "언어지식(문자·어휘·문법) · 독해",
+                        maxScore: 120,
+                        minPass: 38,
+                        problems: [
+                            { category: "문자·어휘", title: "문제 1 한자읽기", range: "01-07", qCount: 7, weight: 1 },
+                            { category: "", title: "문제 2 표기", range: "08-12", qCount: 5, weight: 1 },
+                            { category: "", title: "문제 3 문맥규정", range: "13-20", qCount: 8, weight: 1 },
+                            { category: "", title: "문제 4 유의 표현", range: "21-24", qCount: 4, weight: 1 },
+                            { category: "", title: "문제 5 용법", range: "25-28", qCount: 4, weight: 2 },
+                            { category: "문법", title: "문제 1 문법형식 판단", range: "01-13", qCount: 13, weight: 1 },
+                            { category: "", title: "문제 2 문장만들기", range: "14-17", qCount: 4, weight: 1 },
+                            { category: "", title: "문제 3 글의 문법", range: "18-21", qCount: 4, weight: 2 },
+                            { category: "독해", title: "문제 4 내용이해 (단문)", range: "22-24", qCount: 3, weight: 2 },
+                            { category: "", title: "문제 5 내용이해 (중문)", range: "25-27", qCount: 3, weight: 3 },
+                            { category: "", title: "문제 6 정보검색", range: "28-29", qCount: 2, weight: 3 }
+                        ]
+                    },
+                    {
+                        name: "청해",
+                        maxScore: 60,
+                        minPass: 19,
+                        problems: [
+                            { category: "청해", title: "문제 1 과제이해", range: "-", qCount: 8, weight: 2 },
+                            { category: "", title: "문제 2 포인트이해", range: "-", qCount: 7, weight: 2 },
+                            { category: "", title: "문제 3 발화표현", range: "-", qCount: 5, weight: 1 },
+                            { category: "", title: "문제 4 즉시응답", range: "-", qCount: 8, weight: 1 }
+                        ]
+                    }
+                ]
+            },
+            N5: {
+                title: "N5",
+                passScore: 80,
+                hasBlue: false,
+                sections: [
+                    {
+                        name: "언어지식(문자·어휘·문법) · 독해",
+                        maxScore: 120,
+                        minPass: 38,
+                        problems: [
+                            { category: "문자·어휘", title: "문제 1 한자읽기", range: "01-07", qCount: 7, weight: 1 },
+                            { category: "", title: "문제 2 표기", range: "08-12", qCount: 5, weight: 1 },
+                            { category: "", title: "문제 3 문맥규정", range: "13-18", qCount: 6, weight: 1 },
+                            { category: "", title: "문제 4 유의 표현", range: "19-21", qCount: 3, weight: 1 },
+                            { category: "문법", title: "문제 1 문법형식 판단", range: "01-09", qCount: 9, weight: 1 },
+                            { category: "", title: "문제 2 문장만들기", range: "10-13", qCount: 4, weight: 1 },
+                            { category: "", title: "문제 3 글의 문법", range: "14-17", qCount: 4, weight: 2 },
+                            { category: "독해", title: "문제 4 내용이해 (단문)", range: "18-19", qCount: 2, weight: 2 },
+                            { category: "", title: "문제 5 내용이해 (중문)", range: "20-21", qCount: 2, weight: 3 },
+                            { category: "", title: "문제 6 정보검색", range: "22", qCount: 1, weight: 3 }
+                        ]
+                    },
+                    {
+                        name: "청해",
+                        maxScore: 60,
+                        minPass: 19,
+                        problems: [
+                            { category: "청해", title: "문제 1 과제이해", range: "-", qCount: 7, weight: 2 },
+                            { category: "", title: "문제 2 포인트이해", range: "-", qCount: 6, weight: 2 },
+                            { category: "", title: "문제 3 발화표현", range: "-", qCount: 5, weight: 1 },
+                            { category: "", title: "문제 4 즉시응답", range: "-", qCount: 6, weight: 1 }
+                        ]
+                    }
+                ]
+            }
+        };
+
+        let currentLevel = 'N1';
+
+        // 탭 전환 함수
+        function switchTab(level) {
+            currentLevel = level;
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = "tab-btn flex-1 py-2.5 px-4 font-bold text-center rounded-t-lg transition-colors border-t-2 border-transparent bg-slate-200 text-slate-600 hover:bg-slate-300";
+            });
+            const activeBtn = document.getElementById(`tab-${level}`);
+            activeBtn.className = "tab-btn flex-1 py-2.5 px-4 font-bold text-center rounded-t-lg transition-colors border-t-2 border-transparent bg-indigo-600 text-white shadow-sm";
+            
+            renderLevel(level);
+            calculateScore();
+        }
+
+        // 화면 렌더링 함수
+        function renderLevel(level) {
+            const data = jlptData[level];
+            const container = document.getElementById('content-area');
+            container.innerHTML = '';
+
+            // 1. 각 섹션별 테이블 생성
+            data.sections.forEach((sec, sIdx) => {
+                let rowsHtml = '';
+                sec.problems.forEach((prob, pIdx) => {
+                   rowsHtml += `
+    <tr class="hover:bg-slate-50 border-b border-slate-100 transition-colors">
+        <td class="py-2.5 px-3 text-xs font-semibold text-slate-500 bg-slate-50/50">${prob.category}</td>
+        <td class="py-2.5 px-3 font-medium text-slate-800">${prob.title}</td>
+        <td class="py-2.5 px-3 text-center text-xs text-slate-400">${prob.range}</td>
+        <td class="py-2.5 px-3 text-center font-semibold text-amber-600">${prob.weight}</td>
+        <td class="py-2.5 px-3 text-center">
+            <!-- readonly 속성을 추가하고 배경색을 회색조로 변경하여 수정 불가 표시 -->
+            <input type="number" value="${prob.qCount}" 
+                   id="q-${sIdx}-${pIdx}" 
+                   readonly
+                   class="w-16 p-1 text-center font-bold bg-slate-100 border border-slate-200 rounded text-slate-500 cursor-not-allowed">
+        </td>
+        <td class="py-2.5 px-3 text-center">
+            <input type="number" min="0" max="${prob.qCount}" value="" placeholder="0" 
+                   id="a-${sIdx}-${pIdx}" 
+                   oninput="validateInput(${sIdx}, ${pIdx}); calculateScore();"
+                   class="w-16 p-1 text-center font-bold bg-white border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 text-indigo-600">
+        </td>
+    </tr>
+`;
+                });
+
+                const sectionHtml = `
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                        <div class="bg-slate-800 text-white px-4 py-3 font-bold flex justify-between items-center">
+                            <span>${sec.name}</span>
+                            <span class="text-xs bg-slate-700 text-slate-200 px-2 py-1 rounded">만점: ${sec.maxScore}점 (과락: ${sec.minPass}점 미만)</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left whitespace-nowrap">
+                                <thead class="text-xs text-slate-500 bg-slate-100 border-b border-slate-200 uppercase">
+                                    <tr>
+                                        <th class="py-2.5 px-3 w-20">과목</th>
+                                        <th class="py-2.5 px-3">문제</th>
+                                        <th class="py-2.5 px-3 text-center">문항번호</th>
+                                        <th class="py-2.5 px-3 text-center">점수배율</th>
+                                        <th class="py-2.5 px-3 text-center text-amber-700">문항수 </th>
+                                        <th class="py-2.5 px-3 text-center text-indigo-700">정답수 (입력)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${rowsHtml}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += sectionHtml;
+            });
+
+            // 2. 결과 카드 생성 (초록이 & 파랭이)
+            let resultCardHtml = '';
+            if (data.hasBlue) {
+                resultCardHtml = `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+                        <!-- 초록이 결과카드 -->
+                        <div class="bg-gradient-to-br from-emerald-600 to-teal-700 text-white rounded-xl shadow-md p-5">
+                            <div class="flex justify-between items-center border-b border-emerald-500/50 pb-3 mb-4">
+                                <span class="font-extrabold text-lg flex items-center">
+                                    <span class="w-2.5 h-2.5 bg-emerald-300 rounded-full mr-2 animate-pulse"></span>
+                                    희망적 채점결과
+                                </span>
+                                <span class="text-xs bg-emerald-800/60 px-2.5 py-1 rounded-full text-emerald-100"></span>
+                            </div>
+                            <div class="space-y-2 text-sm mb-4" id="green-sections"></div>
+                            <div class="border-t border-emerald-500/50 pt-3 flex justify-between items-end">
+                                <div>
+                                    <div class="text-xs text-emerald-200">예상 총점 (합격기준 ${data.passScore}점)</div>
+                                    <div class="text-3xl font-black tracking-tight" id="green-total">0 / 180</div>
+                                </div>
+                                <div id="green-status" class="text-lg font-bold px-3 py-1 rounded bg-black/20">-</div>
+                            </div>
+                        </div>
+
+                        <!-- 파랭이 결과카드 -->
+                        <div class="bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-xl shadow-md p-5">
+                            <div class="flex justify-between items-center border-b border-blue-500/50 pb-3 mb-4">
+                                <span class="font-extrabold text-lg flex items-center">
+                                    <span class="w-2.5 h-2.5 bg-blue-300 rounded-full mr-2 animate-pulse"></span>
+                                    보수적 채점결과
+                                </span>
+                                <span class="text-xs bg-blue-800/60 px-2.5 py-1 rounded-full text-blue-100"></span>
+                            </div>
+                            <div class="space-y-2 text-sm mb-4" id="blue-sections"></div>
+                            <div class="border-t border-blue-500/50 pt-3 flex justify-between items-end">
+                                <div>
+                                    <div class="text-xs text-blue-200">예상 총점 (합격기준 ${data.passScore}점)</div>
+                                    <div class="text-3xl font-black tracking-tight" id="blue-total">0 / 180</div>
+                                </div>
+                                <div id="blue-status" class="text-lg font-bold px-3 py-1 rounded bg-black/20">-</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // N4, N5
+                resultCardHtml = `
+                    <div class="max-w-md mx-auto mt-8">
+                        <div class="bg-gradient-to-br from-emerald-600 to-teal-700 text-white rounded-xl shadow-md p-5">
+                            <div class="flex justify-between items-center border-b border-emerald-500/50 pb-3 mb-4">
+                                <span class="font-extrabold text-lg flex items-center">
+                                    <span class="w-2.5 h-2.5 bg-emerald-300 rounded-full mr-2 animate-pulse"></span>
+                                    가채점 결과
+                                </span>
+                                <span class="text-xs bg-emerald-800/60 px-2.5 py-1 rounded-full text-emerald-100"></span>
+                            </div>
+                            <div class="space-y-2 text-sm mb-4" id="green-sections"></div>
+                            <div class="border-t border-emerald-500/50 pt-3 flex justify-between items-end">
+                                <div>
+                                    <div class="text-xs text-emerald-200">예상 총점 (합격기준 ${data.passScore}점)</div>
+                                    <div class="text-3xl font-black tracking-tight" id="green-total">0 / 180</div>
+                                </div>
+                                <div id="green-status" class="text-lg font-bold px-3 py-1 rounded bg-black/20">-</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 초기화 버튼 추가
+            const btnHtml = `
+                <div class="flex justify-center mt-6">
+                    <button onclick="resetInputs()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold py-2 px-6 rounded-lg shadow-sm transition-colors text-sm flex items-center space-x-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                        <span>현재 급수 입력값 초기화</span>
+                    </button>
+                </div>
+            `;
+
+            container.innerHTML += resultCardHtml + btnHtml;
+        }
+
+        // 입력값 검증 (정답수가 문항수를 초과하지 않도록)
+        function validateInput(sIdx, pIdx) {
+            const qInput = document.getElementById(`q-${sIdx}-${pIdx}`);
+            const aInput = document.getElementById(`a-${sIdx}-${pIdx}`);
+            
+            let qVal = parseInt(qInput.value) || 0;
+            let aVal = parseInt(aInput.value) || 0;
+
+            if (qVal < 1) { qVal = 1; qInput.value = 1; }
+            if (aVal < 0) { aVal = 0; aInput.value = ""; }
+            if (aVal > qVal) {
+                aInput.value = qVal;
+            }
+        }
+
+        // 초기화 버튼 동작
+        function resetInputs() {
+            if (!confirm("현재 입력한 정답수를 모두 초기화하시겠습니까?")) return;
+            renderLevel(currentLevel);
+            calculateScore();
+        }
+
+        // 점수 계산 및 렌더링 로직
+        function calculateScore() {
+            const data = jlptData[currentLevel];
+            let greenTotal = 0;
+            let blueTotal = 0;
+            let greenPass = true;
+            let bluePass = true;
+            
+            let greenSecHtml = '';
+            let blueSecHtml = '';
+
+            data.sections.forEach((sec, sIdx) => {
+                let secQCount = 0;
+                let secACount = 0;
+                let secWeightedSum = 0;
+                let secMaxWeightedSum = 0;
+
+                sec.problems.forEach((prob, pIdx) => {
+                    const qVal = parseInt(document.getElementById(`q-${sIdx}-${pIdx}`).value) || 0;
+                    const aStr = document.getElementById(`a-${sIdx}-${pIdx}`).value;
+                    const aVal = aStr === "" ? 0 : parseInt(aStr);
+
+                    secQCount += qVal;
+                    secACount += aVal;
+                    secWeightedSum += (aVal * prob.weight);
+                    secMaxWeightedSum += (qVal * prob.weight);
+                });
+
+                // --- 초록이 섹션 점수 계산 ---
+                let gScore = 0;
+                if (secMaxWeightedSum > 0) {
+                    gScore = Math.round((secWeightedSum * sec.maxScore) / secMaxWeightedSum);
+                }
+                greenTotal += gScore;
+                const gFail = gScore < sec.minPass;
+                if (gFail) greenPass = false;
+
+                greenSecHtml += `
+                    <div class="flex justify-between items-center bg-white/10 px-3 py-1.5 rounded">
+                        <span class="truncate pr-2">${sec.name}</span>
+                        <div class="flex items-center space-x-2 flex-shrink-0">
+                            <span class="font-bold">${gScore} / ${sec.maxScore}</span>
+                            <span class="text-xs px-1.5 py-0.5 rounded font-extrabold ${gFail ? 'bg-red-500 text-white' : 'bg-white/20 text-emerald-100'}">${gFail ? '과락' : '통과'}</span>
+                        </div>
+                    </div>
+                `;
+
+                // --- 파랭이 섹션 점수 계산 (N1~N3만 해당) ---
+                if (data.hasBlue) {
+                    let bScore = 0;
+                    if (secQCount > 0) {
+                        if (secACount === secQCount) {
+                            bScore = sec.maxScore; // 만점
+                        } else {
+                            const benchmark = data.blueBenchmarks[`sec${sIdx}`];
+                            bScore = Math.round((benchmark * secACount) / secQCount);
+                        }
+                    }
+                    blueTotal += bScore;
+                    const bFail = bScore < sec.minPass;
+                    if (bFail) bluePass = false;
+
+                    blueSecHtml += `
+                        <div class="flex justify-between items-center bg-white/10 px-3 py-1.5 rounded">
+                            <span class="truncate pr-2">${sec.name}</span>
+                            <div class="flex items-center space-x-2 flex-shrink-0">
+                                <span class="font-bold">${bScore} / ${sec.maxScore}</span>
+                                <span class="text-xs px-1.5 py-0.5 rounded font-extrabold ${bFail ? 'bg-red-500 text-white' : 'bg-white/20 text-blue-100'}">${bFail ? '과락' : '통과'}</span>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            // 초록이 최종 출력
+            document.getElementById('green-sections').innerHTML = greenSecHtml;
+            document.getElementById('green-total').innerText = `${greenTotal} / 180`;
+            const gStatusEl = document.getElementById('green-status');
+            if (greenPass && greenTotal >= data.passScore) {
+                gStatusEl.innerText = "합격";
+                gStatusEl.className = "text-lg font-black px-3 py-1 rounded bg-white text-emerald-700 shadow";
+            } else {
+                gStatusEl.innerText = !greenPass ? "불합격 (과락)" : "불합격";
+                gStatusEl.className = "text-lg font-black px-3 py-1 rounded bg-red-500 text-white shadow";
+            }
+
+            // 파랭이 최종 출력 (N1~N3)
+            if (data.hasBlue) {
+                document.getElementById('blue-sections').innerHTML = blueSecHtml;
+                document.getElementById('blue-total').innerText = `${blueTotal} / 180`;
+                const bStatusEl = document.getElementById('blue-status');
+                if (bluePass && blueTotal >= data.passScore) {
+                    bStatusEl.innerText = "합격";
+                    bStatusEl.className = "text-lg font-black px-3 py-1 rounded bg-white text-blue-700 shadow";
+                } else {
+                    bStatusEl.innerText = !bluePass ? "불합격 (과락)" : "불합격";
+                    bStatusEl.className = "text-lg font-black px-3 py-1 rounded bg-red-500 text-white shadow";
+                }
+            }
+        }
+
+        // 브라우저 로딩 완료 시 초기 실행 (기본값: N1 탭 렌더링)
+        window.addEventListener('DOMContentLoaded', () => {
+            switchTab('N1');
+        });
+    </script>
+</body>
+</html>
