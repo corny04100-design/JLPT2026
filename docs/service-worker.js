@@ -4,8 +4,8 @@ const FILES_TO_CACHE = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
-  "./icon-192.png",
-  "./icon-512.png"
+  "./icon-192-1.png",
+  "./icon-512-1.png"
 ];
 
 // 설치
