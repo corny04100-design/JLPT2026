@@ -581,25 +581,10 @@ window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
 
-    const installBtn = document.createElement('button');
-    installBtn.id = 'installBtn';
-    installBtn.innerText = '📲 앱 설치';
+const installBox = document.getElementById('installBox');
+const installBtn = document.getElementById('installBtn');
 
-    installBtn.style.position = 'fixed';
-    installBtn.style.bottom = '20px';
-    installBtn.style.right = '20px';
-    installBtn.style.zIndex = '9999';
-    installBtn.style.background = '#4f46e5';
-    installBtn.style.color = '#fff';
-    installBtn.style.padding = '14px 22px';
-    installBtn.style.border = 'none';
-    installBtn.style.borderRadius = '50px';
-    installBtn.style.fontSize = '16px';
-    installBtn.style.fontWeight = 'bold';
-    installBtn.style.boxShadow = '0 6px 16px rgba(0,0,0,.3)';
-    installBtn.style.cursor = 'pointer';
-
-    document.body.appendChild(installBtn);
+installBox.classList.remove('hidden');
 
     installBtn.addEventListener('click', async () => {
         installBtn.style.display = 'none';
