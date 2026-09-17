@@ -21,13 +21,18 @@
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen pb-12">
 
-    <!-- 상단 헤더 -->
-    <header class="bg-indigo-900 text-white shadow-lg py-6 px-4 mb-6">
-        <div class="max-w-4xl mx-auto">
-            <h1 class="text-2xl md:text-3xl font-bold tracking-tight mb-2">2026 JLPT 채점 계산기</h1>
-            <p class="text-indigo-200 text-sm md:text-base">
-            </p>
+<!-- 상단 헤더 (우측 상단 방문자 카운터 배치) -->
+<header class="bg-indigo-900 text-white shadow-lg py-5 px-4 mb-6">
+    <div class="max-w-4xl mx-auto flex justify-between items-center">
+        <div>
+            <h1 class="text-xl md:text-2xl font-bold tracking-tight mb-1">2026 JLPT 채점 계산기</h1>
+            <p class="text-indigo-200 text-xs md:text-sm"></p>
         </div>
+        <!-- 우측 상단 방문자 카운터 배지 -->
+        <div class="flex-shrink-0">
+            <img src="https://komarev.com/ghpvc/?username=corny04100-design&repo=JLPT2026&color=brightgreen" alt="Total Visitors" />
+        </div>
+    </div>
     </header>
     <div id="installBox" class="hidden max-w-4xl mx-auto px-4 mb-5">
     <button id="installBtn"
